@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📋 My Todo</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --sub: #8b949e;
+  --accent: #58a6ff;
+  --danger: #f85149;
+  --success: #3fb950;
+  --warn: #d2991d;
+  --hover: #1c2129;
+  --input-bg: #0d1117;
+  --radius: 10px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+* { margin:0;padding:0;box-sizing:border-box; }
+body {
+  font-family: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; display:flex; justify-content: center;
+  padding: 40px 16px;
+}
+.app {
+  width: 100%; max-width: 640px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+/* ── header ── */
+.header {
+  text-align: center; padding: 8px 0;
+}
+.header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: .02em; }
+.header p { color: var(--sub); font-size: .88rem; margin-top: 4px; }
+
+/* ── stats bar ── */
+.stats-bar {
+  display: flex; gap: 12px; justify-content: center;
+  font-size: .82rem; color: var(--sub);
+}
+.stats-bar span {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 4px 14px;
+}
+.stats-bar strong { color: var(--text); }
+
+/* ── add form ── */
+.add-form {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+}
+.add-form input, .add-form select, .add-form button {
+  font-family: inherit; font-size: .9rem;
+  border-radius: 6px; padding: 9px 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg); color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+.add-form input:focus, .add-form select:focus { border-color: var(--accent); }
+.add-form input[name="title"] { flex: 1 1 200px; min-width: 180px; }
+.add-form input[name="date"] { width: 130px; }
+.add-form select { width: 100px; cursor: pointer; }
+.add-form button {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+  cursor: pointer; font-weight: 600; padding: 9px 18px;
+  transition: all .2s;
+}
+.add-form button:hover { background: #4090e0; }
+.add-form button:active { transform: scale(.97); }
+
+/* ── toolbar ── */
+.toolbar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.search {
+  flex: 1; min-width: 160px; padding: 8px 12px;
+  border:1px solid var(--border); border-radius: 8px;
+  background: var(--input-bg); color:var(--text);
+  font-family: inherit; font-size: .85rem; outline: none;
+  transition: border-color .2s;
+}
+.search:focus { border-color: var(--accent); }
+.filters {
+  display: flex; gap: 4px;
+}
+.filters button {
+  padding: 7px 14px; border-radius: 20px;
+  border:1px solid var(--border); background: transparent;
+  color: var(--sub); cursor: pointer;
+  font-family: inherit; font-size: .82rem; font-weight: 500;
+  transition: all .2s;
+}
+.filters button:hover { color: var(--text); border-color: var(--sub); }
+.filters button.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+
+/* ── task list ── */
+.task-list {
+  display: flex; flex-direction: column; gap: 6px;
+  min-height: 200px;
+}
+.empty {
+  text-align: center; color: var(--sub); padding: 60px 0;
+  font-size: .95rem;
+}
+.empty strong { color: var(--text); }
+
+/* ── task card ── */
+.task {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border:1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 16px;
+  transition: all .2s; cursor: grab;
+  animation: slideIn .25s ease;
+}
+@keyframes slideIn {
+  from { opacity:0; transform: translateY(-8px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.task:hover { border-color: #484f58; }
+.task.done { opacity: 0.5; }
+.task.done .task-title { text-decoration: line-through; }
+.task.overdue { border-color: var(--danger); }
+
+.task input[type="checkbox"] {
+  width: 20px; height: 20px; accent-color: var(--success);
+  cursor: pointer; flex-shrink: 0;
+}
+.task-body { flex: 1; min-width: 0; }
+.task-title {
+  font-weight: 600; font-size: .95rem;
+  word-break: break-word;
+}
+.task-meta {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 4px; font-size: .78rem; color: var(--sub);
+  align-items: center;
+}
+.priority { font-weight: 700; font-size: .72rem; }
+.priority.high { color: var(--danger); }
+.priority.med  { color: var(--warn); }
+.priority.low  { color: var(--sub); }
+.category {
+  background: var(--input-bg); border:1px solid var(--border);
+  border-radius: 12px; padding: 1px 10px;
+  font-size: .74rem;
+}
+.due-date.overdue-text { color: var(--danger); font-weight: 600; }
+.due-date.today { color: var(--warn); font-weight: 600; }
+
+.task-actions {
+  display: flex; gap: 4px; flex-shrink: 0;
+}
+.task-actions button {
+  width: 32px; height: 32px; border-radius: 6px;
+  border: none; background: transparent; color: var(--sub);
+  cursor: pointer; font-size: 1rem; transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.task-actions button:hover { background: var(--hover); color: var(--text); }
+.task-actions button.danger:hover { background: #3f1116; color: var(--danger); }
+
+/* ── clear btn ── */
+.footer {
+  display: flex; justify-content: flex-end;
+}
+.clear-btn {
+  background: transparent; border: none; color: var(--sub);
+  cursor: pointer; font-family: inherit; font-size: .82rem;
+  padding: 4px 8px; border-radius: 4px; transition: all .15s;
+}
+.clear-btn:hover { color: var(--danger); background: #3f111633; }
+
+/* ── responsive ── */
+@media (max-width:480px) {
+  .add-form { flex-direction: column; }
+  .add-form input[name="title"], .add-form input[name="date"],
+  .add-form select { width: 100%; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1>📋 My Todo</h1>
+    <p>保持专注，完成重要的事</p>
+  </div>
+
+  <div class="stats-bar" id="statsBar">
+    <span>📌 全部 <strong id="statAll">0</strong></span>
+    <span>✅ 已完成 <strong id="statDone">0</strong></span>
+    <span>⏳ 待处理 <strong id="statActive">0</strong></span>
+  </div>
+
+  <form class="add-form" id="addForm" autocomplete="off">
+    <input name="title" type="text" placeholder="添加新任务…" maxlength="120" required>
+    <input name="date" type="date" title="截止日期">
+    <select name="priority">
+      <option value="low">🟢 低</option>
+      <option value="med" selected>🟡 中</option>
+      <option value="high">🔴 高</option>
+    </select>
+    <select name="category">
+      <option value="工作">💼 工作</option>
+      <option value="个人">👤 个人</option>
+      <option value="学习">📚 学习</option>
+      <option value="生活">🏠 生活</option>
+      <option value="其他">📌 其他</option>
+    </select>
+    <button type="submit">＋ 添加</button>
+  </form>
+
+  <div class="toolbar">
+    <input class="search" type="text" id="search" placeholder="🔍 搜索任务…" autocomplete="off">
+    <div class="filters" id="filters">
+      <button data-filter="all" class="active">全部</button>
+      <button data-filter="active">待处理</button>
+      <button data-filter="done">已完成</button>
+      <button data-filter="overdue">已逾期</button>
+    </div>
+  </div>
+
+  <div class="task-list" id="taskList"></div>
+
+  <div class="footer">
+    <button class="clear-btn" id="clearDone" style="display:none">🗑 清除已完成</button>
+  </div>
+
+</div>
+
+<script>
+// ─── Store ────────────────────────────────────────────────
+const STORAGE_KEY = 'my_todo_tasks';
+let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+}
+
+// ─── Helpers ──────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+function isOverdue(due) {
+  return due && due < todayStr();
+}
+function isToday(due) {
+  return due === todayStr();
+}
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, m, day] = d.split('-');
+  return `${Number(m)}/${Number(day)}`;
+}
+
+// ─── Render ───────────────────────────────────────────────
+const $taskList = document.getElementById('taskList');
+const $search = document.getElementById('search');
+const $clearDone = document.getElementById('clearDone');
+const $statAll = document.getElementById('statAll');
+const $statDone = document.getElementById('statDone');
+const $statActive = document.getElementById('statActive');
+const $filters = document.getElementById('filters');
+let currentFilter = 'all';
+
+function applyFilters(ts) {
+  // filter by status
+  ts = ts.filter(t => {
+    switch (currentFilter) {
+      case 'active':  return !t.done;
+      case 'done':    return t.done;
+      case 'overdue': return !t.done && isOverdue(t.due);
+      default:        return true;
+    }
+  });
+  // search
+  const q = $search.value.trim().toLowerCase();
+  if (q) ts = ts.filter(t => t.title.toLowerCase().includes(q));
+  return ts;
+}
+
+function updateStats(visible) {
+  const all = tasks.length;
+  const done = tasks.filter(t => t.done).length;
+  $statAll.textContent = all;
+  $statDone.textContent = done;
+  $statActive.textContent = all - done;
+  $clearDone.style.display = done > 0 ? '' : 'none';
+  // overdue count
+  const overBtn = $filters.querySelector('[data-filter="overdue"]');
+  const overdueCount = tasks.filter(t => !t.done && isOverdue(t.due)).length;
+  overBtn.textContent = '已逾期' + (overdueCount ? ` (${overdueCount})` : '');
+}
+
+function render() {
+  let visible = applyFilters([...tasks]);
+  updateStats(visible);
+
+  if (!visible.length) {
+    $taskList.innerHTML = `<div class="empty">
+      <div style="font-size:3rem;margin-bottom:12px">📭</div>
+      <strong>暂无任务</strong><br>
+      <span>用上方表单添加你的第一个任务吧</span>
+    </div>`;
+    return;
+  }
+
+  $taskList.innerHTML = visible.map(t => {
+    const overdue = !t.done && isOverdue(t.due);
+    const today = !t.done && isToday(t.due);
+    let dueCls = '';
+    if (overdue) dueCls = ' overdue-text';
+    else if (today) dueCls = ' today';
+
+    return `
+    <div class="task${t.done?' done':''}${overdue?' overdue':''}" data-id="${t.id}" draggable="true">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleDone('${t.id}')" title="标记完成">
+      <div class="task-body">
+        <div class="task-title">${esc(t.title)}</div>
+        <div class="task-meta">
+          <span class="priority ${t.priority}">${prioLabel(t.priority)}</span>
+          <span class="category">${esc(t.category||'')}</span>
+          ${t.due ? `<span class="due-date${dueCls}">📅 ${fmtDate(t.due)}${overdue?' 逾期':''}${today?' 今天':''}</span>` : ''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button onclick="editTask('${t.id}')" title="编辑">✏️</button>
+        <button class="danger" onclick="deleteTask('${t.id}')" title="删除">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function prioLabel(p) {
+  return p === 'high' ? '🔴 高' : p === 'med' ? '🟡 中' : '🟢 低';
+}
+
+// ─── Actions ──────────────────────────────────────────────
+function addTask(e) {
+  e.preventDefault();
+  const f = document.getElementById('addForm');
+  const fd = new FormData(f);
+  const title = fd.get('title').trim();
+  if (!title) return;
+
+  tasks.unshift({
+    id: uid(),
+    title,
+    due: fd.get('date') || null,
+    priority: fd.get('priority'),
+    category: fd.get('category'),
+    done: false,
+    createdAt: new Date().toISOString(),
+  });
+  save();
+  f.title.value = '';
+  f.title.focus();
+  render();
+}
+
+function toggleDone(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.done = !t.done; save(); render(); }
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  save(); render();
+}
+
+function editTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  const title = prompt('编辑任务名称：', t.title);
+  if (title !== null && title.trim()) {
+    t.title = title.trim();
+    save(); render();
+    showToast('✅ 任务已更新');
+  }
+}
+
+function clearDone() {
+  if (!confirm('确定清除所有已完成的任务吗？')) return;
+  tasks = tasks.filter(t => !t.done);
+  save(); render();
+  showToast('🗑 已完成任务已清除');
+}
+
+// ─── Toast ────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  let el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    Object.assign(el.style, {
+      position:'fixed',top:'20px',left:'50%',transform:'translateX(-50%) translateY(-120px)',
+      background:'#21262d',color:'#fff',padding:'10px 24px',borderRadius:'24px',
+      fontSize:'.88rem',fontWeight:600,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',
+      zIndex:99,pointerEvents:'none',
+      transition:'transform .3s cubic-bezier(.175,.885,.32,1.275)',
+    });
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.style.transform = 'translateX(-50%) translateY(-120px)';
+  }, 1800);
+}
+
+// ─── Events ───────────────────────────────────────────────
+document.getElementById('addForm').addEventListener('submit', addTask);
+
+$search.addEventListener('input', render);
+
+$filters.addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  $filters.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentFilter = e.target.dataset.filter;
+  render();
+});
+
+document.getElementById('clearDone').addEventListener('click', clearDone);
+
+// ─── Keyboard shortcuts ───────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'k') {
+    e.preventDefault();
+    document.querySelector('.add-form input[name="title"]').focus();
+  }
+  if (e.ctrlKey && e.key === 'f') {
+    e.preventDefault();
+    $search.focus();
+  }
+});
+
+// ─── Drag to reorder ──────────────────────────────────────
+let dragSrc = null;
+document.addEventListener('dragstart', e => {
+  const card = e.target.closest('.task');
+  if (!card) return;
+  dragSrc = card;
+  card.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+});
+document.addEventListener('dragend', e => {
+  const card = e.target.closest('.task');
+  if (card) card.style.opacity = '';
+  dragSrc = null;
+});
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+});
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  const target = e.target.closest('.task');
+  if (!dragSrc || !target || dragSrc === target) return;
+  const srcId = dragSrc.dataset.id;
+  const tgtId = target.dataset.id;
+  const srcIdx = tasks.findIndex(t => t.id === srcId);
+  const tgtIdx = tasks.findIndex(t => t.id === tgtId);
+  if (srcIdx < 0 || tgtIdx < 0) return;
+  const [moved] = tasks.splice(srcIdx, 1);
+  tasks.splice(tgtIdx, 0, moved);
+  save(); render();
+});
+
+// ─── Check overdue each minute ────────────────────────────
+setInterval(() => {
+  const hasOverdue = tasks.some(t => !t.done && isOverdue(t.due));
+  if (hasOverdue) render();
+}, 60000);
+
+// ─── Init ─────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
